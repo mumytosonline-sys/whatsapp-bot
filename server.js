@@ -6,6 +6,11 @@ app.use(express.json());
 // 🔐 TOKEN (desde Railway Variables)
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 
+// 🧪 RUTA PRINCIPAL (para probar Railway)
+app.get("/", (req, res) => {
+  res.send("Servidor funcionando 🚀");
+});
+
 // ✅ VERIFICACIÓN DE META
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
@@ -29,14 +34,9 @@ app.post("/webhook", (req, res) => {
   res.sendStatus(200);
 });
 
-// 🧪 RUTA DE PRUEBA (IMPORTANTE)
-app.get("/", (req, res) => {
-  res.send("Servidor funcionando 🚀");
-});
-
-// 🚀 SERVIDOR (NO CAMBIAR ESTO)
+// 🚀 SERVIDOR (IMPORTANTE)
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 Servidor corriendo en puerto", PORT);
 });
