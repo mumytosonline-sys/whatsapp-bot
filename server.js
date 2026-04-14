@@ -10,6 +10,9 @@ const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
+// ===== ANTI SPAM =====
+const lastMessage = {};
+
 // ===== INFO DEL SERVIDOR =====
 const DATA = {
   exp: "x20-5x",
@@ -17,8 +20,8 @@ const DATA = {
   vip: "$10 por 30 días",
   tipo: "Slow (Servidor clásico)",
   donaciones: "Yape, Plin, PayPal, Binance",
-  cuentas: "3 cuentas por HID",
-  reset: "300 puntos por reset",
+  cuentas: "3 cuentas por IP",
+  reset: "30 puntos por reset",
   maxreset: "3 resets máximo",
   web: "https://mu-core.com/"
 };
@@ -26,8 +29,6 @@ const DATA = {
 // ===== MENÚ =====
 function getMenu() {
   return `👋 Bienvenido a *MU CORE*
-
-Puedo ayudarte solo con preguntas del servidor Mu Core
 
 📌 MENÚ:
 
@@ -46,12 +47,10 @@ Escribe el número 👇`;
 function getResponse(text) {
   const msg = text.toLowerCase();
 
-  // SALUDO
   if (msg.includes("hola") || msg.includes("menu")) {
     return getMenu();
   }
 
-  // OPCIONES NUMÉRICAS
   if (msg === "1") {
     return `📌 *INFORMACIÓN DEL SERVIDOR*
 
@@ -98,7 +97,7 @@ ${DATA.web}`;
 Comunícate con el ADM para más información.`;
   }
 
-  // PALABRAS CLAVE INTELIGENTES
+  // PALABRAS CLAVE
   if (msg.includes("vip") || msg.includes("precio")) {
     return `💎 VIP: ${DATA.vip}`;
   }
@@ -119,10 +118,9 @@ Comunícate con el ADM para más información.`;
     return `🌐 ${DATA.web}`;
   }
 
-  // RESPUESTA POR DEFECTO
-  return `⚠ Solo atendemos consultas del servidor Mu Core.
+  return `⚠ No entendí tu mensaje.
 
-Escribe "menu" para ver opciones.`;
+Escribe *menu* para ver opciones o usa números (1-7).`;
 }
 
 // ===== VERIFY =====
@@ -145,26 +143,71 @@ app.post("/webhook", async (req, res) => {
 
     if (message) {
       const from = message.from;
-      const text = message.text?.body || "";
+
+      // ANTI-SPAM
+      if (lastMessage[from] && Date.now() - lastMessage[from] < 2000) {
+        return res.sendStatus(200);
+      }
+      lastMessage[from] = Date.now();
+
+      // LEER MENSAJE (texto o botón)
+      const text =
+        message.text?.body ||
+        message.button?.text ||
+        message.interactive?.button_reply?.id ||
+        "";
+
+      if (!text) return res.sendStatus(200);
 
       console.log("Mensaje:", text);
 
-      const reply = getResponse(text);
-
-      await axios.post(
-        `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-        {
-          messaging_product: "whatsapp",
-          to: from,
-          text: { body: reply }
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-            "Content-Type": "application/json"
+      // SI ES MENU → BOTONES
+      if (text.toLowerCase().includes("menu") || text.toLowerCase().includes("hola")) {
+        await axios.post(
+          `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+          {
+            messaging_product: "whatsapp",
+            to: from,
+            type: "interactive",
+            interactive: {
+              type: "button",
+              body: {
+                text: "👋 Bienvenido a MU CORE\nSelecciona una opción:"
+              },
+              action: {
+                buttons: [
+                  { type: "reply", reply: { id: "1", title: "Info" } },
+                  { type: "reply", reply: { id: "2", title: "VIP" } },
+                  { type: "reply", reply: { id: "3", title: "Donar" } }
+                ]
+              }
+            }
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+              "Content-Type": "application/json"
+            }
           }
-        }
-      );
+        );
+      } else {
+        const reply = getResponse(text);
+
+        await axios.post(
+          `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+          {
+            messaging_product: "whatsapp",
+            to: from,
+            text: { body: reply }
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
 
       console.log("Respondido");
     }
