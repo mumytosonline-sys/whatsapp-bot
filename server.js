@@ -36,7 +36,7 @@ const DATA = {
   drop: "20%",
   vip: "$10 por 30 días",
   web: "https://mu-core.com/",
-  yape: "999999999"
+  yape: "927675685"
 };
 
 // ===== MENÚ TEXTO =====
