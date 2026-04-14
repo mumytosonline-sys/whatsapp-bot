@@ -24,8 +24,8 @@ const DATA = {
   reset: "300 puntos por reset",
   maxreset: "3 resets máximo",
   web: "https://mu-core.com/",
-  yape: "999999999",
-  binance: "TU_ID_BINANCE"
+  yape: "51927675685",
+  binance: "823927645"
 };
 
 // ===== MENÚ TEXTO =====
