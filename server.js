@@ -6,9 +6,9 @@ app.use(express.json());
 // 🔐 TOKEN (desde Railway Variables)
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 
-// 🧪 RUTA PRINCIPAL (para probar Railway)
+// 🧪 RUTA PRINCIPAL (IMPORTANTE)
 app.get("/", (req, res) => {
-  res.send("Servidor funcionando 🚀");
+  res.send("OK");
 });
 
 // ✅ VERIFICACIÓN DE META
@@ -26,15 +26,14 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-// 📩 RECIBIR MENSAJES DE WHATSAPP
+// 📩 RECIBIR MENSAJES
 app.post("/webhook", (req, res) => {
   console.log("📩 Mensaje recibido:");
   console.log(JSON.stringify(req.body, null, 2));
-
   res.sendStatus(200);
 });
 
-// 🚀 SERVIDOR (IMPORTANTE)
+// 🚀 SERVIDOR
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
