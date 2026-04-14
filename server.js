@@ -5,39 +5,61 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
-// ===== VARIABLES =====
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// ===== IA =====
-async function getAIResponse(text) {
+// 🧠 MEMORIA POR USUARIO
+const userMemory = {};
+
+// ===== IA CON MEMORIA =====
+async function getAIResponse(userId, text) {
   try {
+    // crear memoria si no existe
+    if (!userMemory[userId]) {
+      userMemory[userId] = [
+        {
+          role: "system",
+          content: `
+Eres un asistente del servidor Mu Core.
+
+INFORMACIÓN:
+- EXP: x20-5x
+- Drop: 20%
+- VIP: $10
+- Tipo: Slow
+- Donaciones: Yape, Plin, PayPal, Binance
+- Cuentas: 03 por IP
+- Inauguracion: todo la informacion esta la Web https://mu-core.com/
+- puntos Por reset: 30
+- Max reset: 03 reset
+- venden Items: No. todo se consigue en el juego
+- Mas informacion: comunicate con el ADM
+
+
+Responde como soporte del servidor.
+`
+        }
+      ];
+    }
+
+    // guardar mensaje usuario
+    userMemory[userId].push({
+      role: "user",
+      content: text
+    });
+
+    // limitar memoria (para ahorrar dinero)
+    if (userMemory[userId].length > 10) {
+      userMemory[userId].splice(1, 2);
+    }
+
     const res = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
         model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `
-Eres un asistente de WhatsApp SOLO para un negocio de servidores.
-
-REGLAS:
-- SOLO respondes sobre el negocio
-- Si preguntan otra cosa responde: "Solo atendemos consultas del servidor 💻"
-- Responde corto, claro y amable
-- No inventes información
-
-NEGOCIO:
-- Servicios: hosting, bots, automatización, soporte técnico
-- Horario: 9am a 6pm
-- Ubicación: Perú
-`
-          },
-          { role: "user", content: text }
-        ]
+        messages: userMemory[userId]
       },
       {
         headers: {
@@ -47,51 +69,23 @@ NEGOCIO:
       }
     );
 
-    return res.data.choices[0].message.content;
+    const reply = res.data.choices[0].message.content;
+
+    // guardar respuesta del bot
+    userMemory[userId].push({
+      role: "assistant",
+      content: reply
+    });
+
+    return reply;
+
   } catch (err) {
     console.log("ERROR IA:", err.response?.data || err.message);
-    return "Error con IA";
+    return "Error 🤖";
   }
 }
 
-// ===== FILTRO (SOLO SERVIDOR) =====
-function isServerRelated(text) {
-  const t = text.toLowerCase();
-
-  return (
-    t.includes("servidor") ||
-    t.includes("hosting") ||
-    t.includes("bot") ||
-    t.includes("precio") ||
-    t.includes("soporte") ||
-    t.includes("servicio") ||
-    t.includes("automatizacion")
-  );
-}
-
-// ===== RESPUESTA INTELIGENTE =====
-async function getResponse(text) {
-  const t = text.toLowerCase();
-
-  // RESPUESTAS GRATIS (NO IA)
-  if (t.includes("hola")) {
-    return "Hola 👋 ¿Consulta sobre servidores o servicios?";
-  }
-
-  if (t.includes("horario")) {
-    return "Atendemos de 9am a 6pm 🕘";
-  }
-
-  // BLOQUEO SI NO ES DEL NEGOCIO
-  if (!isServerRelated(text)) {
-    return "Solo atendemos consultas del servidor 💻";
-  }
-
-  // USA IA SOLO SI ES NECESARIO
-  return await getAIResponse(text);
-}
-
-// ===== VERIFY WEBHOOK =====
+// ===== WEBHOOK =====
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -104,7 +98,7 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-// ===== RECIBIR MENSAJES =====
+// ===== MENSAJES =====
 app.post("/webhook", async (req, res) => {
   try {
     const message =
@@ -116,7 +110,7 @@ app.post("/webhook", async (req, res) => {
 
       console.log("Mensaje:", text);
 
-      const reply = await getResponse(text);
+      const reply = await getAIResponse(from, text);
 
       await axios.post(
         `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
@@ -132,24 +126,14 @@ app.post("/webhook", async (req, res) => {
           }
         }
       );
-
-      console.log("Respondido");
     }
 
     res.sendStatus(200);
   } catch (err) {
-    console.log("ERROR:", err.message);
     res.sendStatus(200);
   }
 });
 
-// ===== ROOT =====
-app.get("/", (req, res) => {
-  res.send("Bot activo 🚀");
-});
-
-// ===== SERVER =====
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto", PORT);
+app.listen(process.env.PORT || 8080, () => {
+  console.log("🚀 Bot con memoria activo");
 });
