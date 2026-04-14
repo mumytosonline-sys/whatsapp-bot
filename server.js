@@ -21,11 +21,11 @@ const DATA = {
   tipo: "Slow (Servidor clásico)",
   donaciones: "Yape, Plin, PayPal, Binance",
   cuentas: "3 cuentas por IP",
-  reset: "30 puntos por reset",
+  reset: "300 puntos por reset",
   maxreset: "3 resets máximo",
   web: "https://mu-core.com/",
-  yape: "999999999",
-  binance: "TU_ID_BINANCE"
+  yape: "51927675685",
+  binance: "823927645"
 };
 
 // ===== MENÚ COMPLETO =====
