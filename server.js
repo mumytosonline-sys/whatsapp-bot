@@ -3,10 +3,10 @@ const app = express();
 
 app.use(express.json());
 
-// 🔐 TOKEN (Railway lo toma de Variables)
+// 🔐 TOKEN (desde Railway Variables)
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 
-// ✅ VERIFICACIÓN DE META (IMPORTANTE)
+// ✅ VERIFICACIÓN DE META
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -14,10 +14,10 @@ app.get("/webhook", (req, res) => {
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
     console.log("✅ WEBHOOK VERIFICADO");
-    res.status(200).send(challenge);
+    return res.status(200).send(challenge);
   } else {
     console.log("❌ ERROR DE VERIFICACIÓN");
-    res.sendStatus(403);
+    return res.sendStatus(403);
   }
 });
 
@@ -29,8 +29,14 @@ app.post("/webhook", (req, res) => {
   res.sendStatus(200);
 });
 
-// 🚀 SERVIDOR
-const PORT = process.env.PORT || 8080;
+// 🧪 RUTA DE PRUEBA (IMPORTANTE)
+app.get("/", (req, res) => {
+  res.send("Servidor funcionando 🚀");
+});
+
+// 🚀 SERVIDOR (NO CAMBIAR ESTO)
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log("🚀 Servidor corriendo en puerto", PORT);
 });
