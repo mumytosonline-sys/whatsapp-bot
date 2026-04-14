@@ -10,10 +10,14 @@ const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
-// ===== ANTI-SPAM =====
-const lastMessage = {};
+// ===== CONFIG ADMIN =====
+const ADMIN_NUMBER = "51927675685"; // 👈 CAMBIA POR TU NÚMERO
 
-// ===== DATA =====
+// ===== MEMORIA =====
+const lastMessage = {};
+const pagosPendientes = [];
+
+// ===== INFO DEL SERVIDOR =====
 const DATA = {
   exp: "x20-5x",
   drop: "20%",
@@ -24,13 +28,13 @@ const DATA = {
   reset: "300 puntos por reset",
   maxreset: "3 resets máximo",
   web: "https://mu-core.com/",
-  yape: "51927675685",
-  binance: "823927645"
+  yape: "61927675685",
+  binance: "823927645" // 👈 TU ID BINANCE
 };
 
 // ===== MENÚ COMPLETO =====
 function getFullMenu() {
-  return `📌 *MENÚ COMPLETO MU CORE*
+  return `📌 *MENÚ MU CORE*
 
 1️⃣ Información del servidor  
 2️⃣ Comprar VIP / Wcoins  
@@ -59,10 +63,16 @@ function getResponse(msg) {
   if (msg === "2") {
     return `💎 *COMPRA VIP / WCOINS*
 
+💳 Métodos:
+
 📱 Yape: ${DATA.yape}
 🪙 Binance ID: ${DATA.binance}
 
-📩 Envía comprobante o TXID`;
+📩 Envía:
+- Captura del pago 📸  
+- o TXID  
+
+⚡ Entrega rápida`;
   }
 
   if (msg === "3") {
@@ -88,7 +98,7 @@ function getResponse(msg) {
   return "Escribe *menu*";
 }
 
-// ===== ENVIAR TEXTO =====
+// ===== ENVIAR MENSAJE =====
 async function sendMessage(to, body) {
   return axios.post(
     `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
@@ -106,7 +116,7 @@ async function sendMessage(to, body) {
   );
 }
 
-// ===== BOTONES PRO =====
+// ===== MENÚ CON BOTONES =====
 async function sendMenuPro(to) {
   try {
     await axios.post(
@@ -137,7 +147,7 @@ async function sendMenuPro(to) {
       }
     );
   } catch (err) {
-    console.log("⚠ fallback menú");
+    console.log("⚠ Error botones → fallback texto");
     await sendMessage(to, getFullMenu());
   }
 }
@@ -158,12 +168,13 @@ app.post("/webhook", async (req, res) => {
 
     const from = message.from;
 
-    // ANTI-SPAM
+    // ===== ANTI-SPAM =====
     if (lastMessage[from] && Date.now() - lastMessage[from] < 1500) {
       return res.sendStatus(200);
     }
     lastMessage[from] = Date.now();
 
+    // ===== LEER MENSAJE =====
     const text =
       message.text?.body ||
       message.image?.caption ||
@@ -172,17 +183,49 @@ app.post("/webhook", async (req, res) => {
 
     const msg = text.toLowerCase();
 
-    console.log("MSG:", msg);
+    console.log("📩 MSG:", from, msg);
 
-    // ===== COMPROBANTE =====
+    // ===== DETECTAR PAGO =====
     if (
       message.image ||
       msg.includes("pago") ||
       msg.includes("tx") ||
       msg.includes("comprobante")
     ) {
-      await sendMessage(from, "✅ Pago recibido, validaremos pronto.");
+      pagosPendientes.push({
+        numero: from,
+        mensaje: msg,
+        fecha: new Date().toLocaleString()
+      });
+
+      await sendMessage(from, "✅ Pago recibido, validando...");
+
+      // NOTIFICAR ADMIN
+      await sendMessage(
+        ADMIN_NUMBER,
+        `💰 NUEVO PAGO
+
+📱 ${from}
+📝 ${msg}
+📅 ${new Date().toLocaleString()}`
+      );
+
       return res.sendStatus(200);
+    }
+
+    // ===== COMANDO ADMIN =====
+    if (from === ADMIN_NUMBER && msg === "admin") {
+      if (pagosPendientes.length === 0) {
+        return await sendMessage(from, "No hay pagos pendientes");
+      }
+
+      let lista = "📋 PAGOS PENDIENTES:\n\n";
+
+      pagosPendientes.forEach((p, i) => {
+        lista += `${i + 1}. ${p.numero}\n${p.fecha}\n\n`;
+      });
+
+      return await sendMessage(from, lista);
     }
 
     // ===== MENU =====
@@ -197,13 +240,13 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // ===== RESPUESTAS =====
+    // ===== RESPUESTA =====
     const reply = getResponse(msg);
     await sendMessage(from, reply);
 
     res.sendStatus(200);
   } catch (err) {
-    console.log("ERROR:", err.response?.data || err.message);
+    console.log("❌ ERROR:", err.response?.data || err.message);
     res.sendStatus(200);
   }
 });
@@ -212,5 +255,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT MENU PRO ACTIVO");
+  console.log("🔥 BOT ADMIN PRO ACTIVO EN " + PORT);
 });
