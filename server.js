@@ -5,13 +5,22 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
+// 🔥 ANTI-CRASH GLOBAL
+process.on("uncaughtException", (err) => {
+  console.error("Error global:", err);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("Promesa no manejada:", err);
+});
+
 // 🔐 VARIABLES
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// 🧠 FUNCIÓN IA (OpenAI)
+// 🧠 IA (OpenAI)
 async function getAIResponse(userMessage) {
   try {
     const response = await axios.post(
@@ -31,10 +40,10 @@ async function getAIResponse(userMessage) {
       }
     );
 
-    return response.data.choices[0].message.content;
+    return response.data.choices?.[0]?.message?.content || "No entendí 🤔";
   } catch (error) {
-    console.error("Error IA:", error.response?.data || error.message);
-    return "Error con la IA 😢";
+    console.error("ERROR IA:", error.response?.data || error.message);
+    return "⚠️ Error con la IA";
   }
 }
 
@@ -46,9 +55,9 @@ app.get("/webhook", (req, res) => {
 
   if (mode && token === VERIFY_TOKEN) {
     console.log("Webhook verificado");
-    res.status(200).send(challenge);
+    return res.status(200).send(challenge);
   } else {
-    res.sendStatus(403);
+    return res.sendStatus(403);
   }
 });
 
@@ -57,19 +66,22 @@ app.post("/webhook", async (req, res) => {
   try {
     const entry = req.body.entry?.[0];
     const changes = entry?.changes?.[0];
-    const messages = changes?.value?.messages;
+    const value = changes?.value;
+    const messages = value?.messages;
 
-    if (messages) {
+    if (messages && messages[0]) {
       const msg = messages[0];
       const from = msg.from;
       const text = msg.text?.body;
 
-      console.log("Mensaje recibido:", text);
+      console.log("📩 Mensaje recibido:", text);
 
-      // 🤖 RESPUESTA IA
-      const aiResponse = await getAIResponse(text);
+      // 🤖 IA
+      const aiResponse = await getAIResponse(text || "Hola");
 
-      // 📤 ENVIAR RESPUESTA A WHATSAPP
+      console.log("🤖 Respuesta IA:", aiResponse);
+
+      // 📤 RESPUESTA A WHATSAPP
       await axios.post(
         `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
         {
@@ -84,17 +96,24 @@ app.post("/webhook", async (req, res) => {
           }
         }
       );
+
+      console.log("✅ Mensaje enviado");
     }
 
     res.sendStatus(200);
   } catch (error) {
-    console.error("Error webhook:", error.response?.data || error.message);
-    res.sendStatus(500);
+    console.error("❌ Error webhook:", error.response?.data || error.message);
+    res.sendStatus(200); // importante para que Meta no reintente infinito
   }
+});
+
+// 🟢 RUTA TEST
+app.get("/", (req, res) => {
+  res.send("Bot funcionando 🚀");
 });
 
 // 🚀 SERVIDOR
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
 });
