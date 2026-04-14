@@ -31,10 +31,10 @@ async function getAIResponse(text) {
       }
     );
 
-    return res.data.choices[0].message.content;
+    return res.data.choices?.[0]?.message?.content || "No entendí 🤔";
   } catch (err) {
     console.log("ERROR IA:", err.response?.data || err.message);
-    return "Error con IA";
+    return "Error con IA 🤖";
   }
 }
 
@@ -61,11 +61,18 @@ app.post("/webhook", async (req, res) => {
       const from = message.from;
       const text = message.text?.body || "";
 
-      console.log("Mensaje:", text);
+      console.log("📩 Mensaje:", text);
 
-      const reply = await getAIResponse(text);
+      // 👉 PRUEBA SIMPLE (SI FALLA IA)
+      let reply = "Hola 👋 estoy funcionando";
 
-      await axios.post(
+      // 👉 INTENTAR IA
+      if (OPENAI_API_KEY) {
+        reply = await getAIResponse(text);
+      }
+
+      // 👉 ENVIAR RESPUESTA
+      const response = await axios.post(
         `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
         {
           messaging_product: "whatsapp",
@@ -80,12 +87,12 @@ app.post("/webhook", async (req, res) => {
         }
       );
 
-      console.log("Respondido");
+      console.log("✅ Respondido:", response.data);
     }
 
     res.sendStatus(200);
   } catch (err) {
-    console.log("ERROR:", err.message);
+    console.log("❌ ERROR COMPLETO:", err.response?.data || err.message);
     res.sendStatus(200);
   }
 });
@@ -98,5 +105,5 @@ app.get("/", (req, res) => {
 // ===== SERVER =====
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto", PORT);
+  console.log("🚀 Servidor corriendo en puerto", PORT);
 });
