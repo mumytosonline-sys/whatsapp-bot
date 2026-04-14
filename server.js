@@ -1,172 +1,183 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
-const fs = require("fs");
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
+// ===== VARIABLES =====
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
-// ===== DATA =====
-function getData() {
-  return JSON.parse(fs.readFileSync("data.json"));
-}
+// ===== INFO DEL SERVIDOR =====
+const DATA = {
+  exp: "x20-5x",
+  drop: "20%",
+  vip: "$10 por 30 días",
+  tipo: "Slow (Servidor clásico)",
+  donaciones: "Yape, Plin, PayPal, Binance",
+  cuentas: "3 cuentas por HID",
+  reset: "300 puntos por reset",
+  maxreset: "3 resets máximo",
+  web: "https://mu-core.com/"
+};
 
-// ===== PANEL ADMIN =====
-app.get("/admin", (req, res) => {
-  const d = getData();
+// ===== MENÚ =====
+function getMenu() {
+  return `👋 Bienvenido a *MU CORE*
 
-  res.send(`
-  <h2>Panel Mu Core</h2>
-  <form method="POST">
-    EXP: <input name="exp" value="${d.exp}" /><br>
-    VIP: <input name="vip" value="${d.vip}" /><br>
-    Drop: <input name="drop" value="${d.drop}" /><br>
-    Tipo: <input name="tipo" value="${d.tipo}" /><br>
-    Donaciones: <input name="donaciones" value="${d.donaciones}" /><br>
-    Cuentas: <input name="cuentas" value="${d.cuentas}" /><br>
-    <button>Guardar</button>
-  </form>
-  `);
-});
+Puedo ayudarte solo con preguntas del servidor Mu Core
 
-app.post("/admin", (req, res) => {
-  fs.writeFileSync("data.json", JSON.stringify(req.body, null, 2));
-  res.send("Guardado ✅");
-});
+📌 MENÚ:
 
-// ===== MENÚ BOTONES =====
-async function sendMenu(to) {
-  await axios.post(
-    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to: to,
-      type: "interactive",
-      interactive: {
-        type: "list",
-        body: {
-          text: "📋 MENÚ MU CORE\nSelecciona una opción 👇"
-        },
-        action: {
-          button: "Ver opciones",
-          sections: [
-            {
-              title: "Opciones",
-              rows: [
-                { id: "info", title: "📋 Información" },
-                { id: "eventos", title: "🎉 Eventos" },
-                { id: "comandos", title: "⚔️ Comandos" },
-                { id: "descarga", title: "⬇️ Descargar" },
-                { id: "soporte", title: "🛠 Soporte" }
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json"
-      }
-    }
-  );
+1️⃣ Información del servidor  
+2️⃣ Precio VIP  
+3️⃣ Métodos de donación  
+4️⃣ EXP del servidor  
+5️⃣ Reset y puntos  
+6️⃣ Web oficial  
+7️⃣ Contactar ADM  
+
+Escribe el número 👇`;
 }
 
 // ===== RESPUESTAS =====
 function getResponse(text) {
-  const d = getData();
+  const msg = text.toLowerCase();
 
-  if (text === "info") {
-    return `📋 INFO MU CORE
-
-⚡ EXP: ${d.exp}
-🎁 Drop: ${d.drop}
-💰 VIP: ${d.vip}
-🐢 Tipo: ${d.tipo}
-💳 Donaciones: ${d.donaciones}
-📜 Cuentas: ${d.cuentas}`;
+  // SALUDO
+  if (msg.includes("hola") || msg.includes("menu")) {
+    return getMenu();
   }
 
-  if (text === "eventos") {
-    return "🎉 Eventos: Blood Castle, Devil Square, Chaos Castle; Etc";
+  // OPCIONES NUMÉRICAS
+  if (msg === "1") {
+    return `📌 *INFORMACIÓN DEL SERVIDOR*
+
+⚔ Tipo: ${DATA.tipo}
+📊 EXP: ${DATA.exp}
+🎁 Drop: ${DATA.drop}
+🔁 Reset: ${DATA.reset}
+🚫 Max Reset: ${DATA.maxreset}
+👥 Cuentas: ${DATA.cuentas}`;
   }
 
-  if (text === "comandos") {
-    return "⚔️ /Str /Agi/post";
+  if (msg === "2") {
+    return `💎 *VIP*
+
+Precio: ${DATA.vip}`;
   }
 
-  if (text === "descarga") {
-    return "⬇️ https://mu-core.com/";
+  if (msg === "3") {
+    return `💰 *DONACIONES*
+
+Métodos disponibles:
+${DATA.donaciones}`;
   }
 
-  if (text === "soporte") {
-    return "🛠 Contacta al ADM";
+  if (msg === "4") {
+    return `📊 EXP del servidor: ${DATA.exp}`;
   }
 
-  return "Escribe *menu* para ver opciones";
+  if (msg === "5") {
+    return `🔁 Reset:
+
+Puntos: ${DATA.reset}
+Máximo: ${DATA.maxreset}`;
+  }
+
+  if (msg === "6") {
+    return `🌐 Web oficial:
+${DATA.web}`;
+  }
+
+  if (msg === "7") {
+    return `📞 Contacto:
+
+Comunícate con el ADM para más información.`;
+  }
+
+  // PALABRAS CLAVE INTELIGENTES
+  if (msg.includes("vip") || msg.includes("precio")) {
+    return `💎 VIP: ${DATA.vip}`;
+  }
+
+  if (msg.includes("exp")) {
+    return `📊 EXP: ${DATA.exp}`;
+  }
+
+  if (msg.includes("donar") || msg.includes("pago")) {
+    return `💰 Donaciones: ${DATA.donaciones}`;
+  }
+
+  if (msg.includes("reset")) {
+    return `🔁 ${DATA.reset} | Max: ${DATA.maxreset}`;
+  }
+
+  if (msg.includes("web")) {
+    return `🌐 ${DATA.web}`;
+  }
+
+  // RESPUESTA POR DEFECTO
+  return `⚠ Solo atendemos consultas del servidor Mu Core.
+
+Escribe "menu" para ver opciones.`;
 }
 
-// ===== WEBHOOK VERIFY =====
+// ===== VERIFY =====
 app.get("/webhook", (req, res) => {
-  if (req.query["hub.verify_token"] === VERIFY_TOKEN) {
-    return res.send(req.query["hub.challenge"]);
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode && token === VERIFY_TOKEN) {
+    return res.status(200).send(challenge);
+  } else {
+    return res.sendStatus(403);
   }
-  res.sendStatus(403);
 });
 
-// ===== MENSAJES =====
+// ===== RECIBIR MENSAJES =====
 app.post("/webhook", async (req, res) => {
   try {
-    const msg = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    const message = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-    if (!msg) return res.sendStatus(200);
+    if (message) {
+      const from = message.from;
+      const text = message.text?.body || "";
 
-    const from = msg.from;
+      console.log("Mensaje:", text);
 
-    let text = "";
+      const reply = getResponse(text);
 
-    if (msg.text) text = msg.text.body.toLowerCase();
-
-    if (msg.interactive?.list_reply) {
-      text = msg.interactive.list_reply.id;
-    }
-
-    // MENÚ
-    if (text.includes("hola") || text === "menu") {
-      await sendMenu(from);
-      return res.sendStatus(200);
-    }
-
-    const reply = getResponse(text);
-
-    await axios.post(
-      `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: from,
-        text: { body: reply }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-          "Content-Type": "application/json"
+      await axios.post(
+        `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+        {
+          messaging_product: "whatsapp",
+          to: from,
+          text: { body: reply }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+            "Content-Type": "application/json"
+          }
         }
-      }
-    );
+      );
+
+      console.log("Respondido");
+    }
 
     res.sendStatus(200);
-  } catch (e) {
-    console.log(e.message);
+  } catch (err) {
+    console.log("ERROR:", err.response?.data || err.message);
     res.sendStatus(200);
   }
 });
 
-app.listen(process.env.PORT || 8080, () => {
+// ===== SERVER =====
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
   console.log("🚀 BOT PRO ACTIVO");
 });
