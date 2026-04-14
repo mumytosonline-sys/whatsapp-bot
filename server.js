@@ -1,139 +1,172 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
+const fs = require("fs");
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// 🧠 MEMORIA POR USUARIO
-const userMemory = {};
-
-// ===== IA CON MEMORIA =====
-async function getAIResponse(userId, text) {
-  try {
-    // crear memoria si no existe
-    if (!userMemory[userId]) {
-      userMemory[userId] = [
-        {
-          role: "system",
-          content: `
-Eres un asistente del servidor Mu Core.
-
-INFORMACIÓN:
-- EXP: x20-5x
-- Drop: 20%
-- VIP: $10
-- Tipo: Slow
-- Donaciones: Yape, Plin, PayPal, Binance
-- Cuentas: 03 por IP
-- Inauguracion: todo la informacion esta la Web https://mu-core.com/
-- puntos Por reset: 30
-- Max reset: 03 reset
-- venden Items: No. todo se consigue en el juego
-- Mas informacion: comunicate con el ADM
-
-
-Responde como soporte del servidor.
-`
-        }
-      ];
-    }
-
-    // guardar mensaje usuario
-    userMemory[userId].push({
-      role: "user",
-      content: text
-    });
-
-    // limitar memoria (para ahorrar dinero)
-    if (userMemory[userId].length > 10) {
-      userMemory[userId].splice(1, 2);
-    }
-
-    const res = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        model: "gpt-4o-mini",
-        messages: userMemory[userId]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    const reply = res.data.choices[0].message.content;
-
-    // guardar respuesta del bot
-    userMemory[userId].push({
-      role: "assistant",
-      content: reply
-    });
-
-    return reply;
-
-  } catch (err) {
-    console.log("ERROR IA:", err.response?.data || err.message);
-    return "Error 🤖";
-  }
+// ===== DATA =====
+function getData() {
+  return JSON.parse(fs.readFileSync("data.json"));
 }
 
-// ===== WEBHOOK =====
-app.get("/webhook", (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
+// ===== PANEL ADMIN =====
+app.get("/admin", (req, res) => {
+  const d = getData();
 
-  if (mode && token === VERIFY_TOKEN) {
-    return res.status(200).send(challenge);
-  } else {
-    return res.sendStatus(403);
+  res.send(`
+  <h2>Panel Mu Core</h2>
+  <form method="POST">
+    EXP: <input name="exp" value="${d.exp}" /><br>
+    VIP: <input name="vip" value="${d.vip}" /><br>
+    Drop: <input name="drop" value="${d.drop}" /><br>
+    Tipo: <input name="tipo" value="${d.tipo}" /><br>
+    Donaciones: <input name="donaciones" value="${d.donaciones}" /><br>
+    Cuentas: <input name="cuentas" value="${d.cuentas}" /><br>
+    <button>Guardar</button>
+  </form>
+  `);
+});
+
+app.post("/admin", (req, res) => {
+  fs.writeFileSync("data.json", JSON.stringify(req.body, null, 2));
+  res.send("Guardado ✅");
+});
+
+// ===== MENÚ BOTONES =====
+async function sendMenu(to) {
+  await axios.post(
+    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: to,
+      type: "interactive",
+      interactive: {
+        type: "list",
+        body: {
+          text: "📋 MENÚ MU CORE\nSelecciona una opción 👇"
+        },
+        action: {
+          button: "Ver opciones",
+          sections: [
+            {
+              title: "Opciones",
+              rows: [
+                { id: "info", title: "📋 Información" },
+                { id: "eventos", title: "🎉 Eventos" },
+                { id: "comandos", title: "⚔️ Comandos" },
+                { id: "descarga", title: "⬇️ Descargar" },
+                { id: "soporte", title: "🛠 Soporte" }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+}
+
+// ===== RESPUESTAS =====
+function getResponse(text) {
+  const d = getData();
+
+  if (text === "info") {
+    return `📋 INFO MU CORE
+
+⚡ EXP: ${d.exp}
+🎁 Drop: ${d.drop}
+💰 VIP: ${d.vip}
+🐢 Tipo: ${d.tipo}
+💳 Donaciones: ${d.donaciones}
+📜 Cuentas: ${d.cuentas}`;
   }
+
+  if (text === "eventos") {
+    return "🎉 Eventos: Blood Castle, Devil Square, Chaos Castle; Etc";
+  }
+
+  if (text === "comandos") {
+    return "⚔️ /Str /Agi/post";
+  }
+
+  if (text === "descarga") {
+    return "⬇️ https://mu-core.com/";
+  }
+
+  if (text === "soporte") {
+    return "🛠 Contacta al ADM";
+  }
+
+  return "Escribe *menu* para ver opciones";
+}
+
+// ===== WEBHOOK VERIFY =====
+app.get("/webhook", (req, res) => {
+  if (req.query["hub.verify_token"] === VERIFY_TOKEN) {
+    return res.send(req.query["hub.challenge"]);
+  }
+  res.sendStatus(403);
 });
 
 // ===== MENSAJES =====
 app.post("/webhook", async (req, res) => {
   try {
-    const message =
-      req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    const msg = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-    if (message) {
-      const from = message.from;
-      const text = message.text?.body || "";
+    if (!msg) return res.sendStatus(200);
 
-      console.log("Mensaje:", text);
+    const from = msg.from;
 
-      const reply = await getAIResponse(from, text);
+    let text = "";
 
-      await axios.post(
-        `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-        {
-          messaging_product: "whatsapp",
-          to: from,
-          text: { body: reply }
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
+    if (msg.text) text = msg.text.body.toLowerCase();
+
+    if (msg.interactive?.list_reply) {
+      text = msg.interactive.list_reply.id;
     }
 
+    // MENÚ
+    if (text.includes("hola") || text === "menu") {
+      await sendMenu(from);
+      return res.sendStatus(200);
+    }
+
+    const reply = getResponse(text);
+
+    await axios.post(
+      `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: from,
+        text: { body: reply }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
     res.sendStatus(200);
-  } catch (err) {
+  } catch (e) {
+    console.log(e.message);
     res.sendStatus(200);
   }
 });
 
 app.listen(process.env.PORT || 8080, () => {
-  console.log("🚀 Bot con memoria activo");
+  console.log("🚀 BOT PRO ACTIVO");
 });
