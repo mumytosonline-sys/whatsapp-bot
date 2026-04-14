@@ -2,14 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 
-// IA opcional (no rompe si no está instalada)
-let OpenAI = null;
-try {
-  OpenAI = require("openai");
-} catch (e) {
-  console.log("⚠ OpenAI no instalado (IA desactivada)");
-}
-
 const app = express();
 app.use(express.json());
 
@@ -18,68 +10,98 @@ const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
-// ===== IA SETUP =====
-const hasAI = OpenAI && process.env.OPENAI_API_KEY;
-const aiClient = hasAI
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  : null;
-
-// ===== ANTI SPAM =====
+// ===== ANTI-SPAM =====
 const lastMessage = {};
 
-// ===== MEMORIA =====
-const users = {};
-
-// ===== DATA =====
+// ===== INFO DEL SERVIDOR =====
 const DATA = {
   exp: "x20-5x",
   drop: "20%",
   vip: "$10 por 30 días",
+  tipo: "Slow (Servidor clásico)",
+  donaciones: "Yape, Plin, PayPal, Binance",
+  cuentas: "3 cuentas por HID",
+  reset: "300 puntos por reset",
+  maxreset: "3 resets máximo",
   web: "https://mu-core.com/",
-  yape: "927675685"
+  yape: "999999999",
+  binance: "TU_ID_BINANCE"
 };
 
 // ===== MENÚ TEXTO =====
 function getMenuText() {
-  return `👋 *MU CORE*
+  return `👋 Bienvenido a *MU CORE*
 
-Selecciona una opción:
+📌 MENÚ:
 
-1️⃣ Info servidor  
-2️⃣ Comprar VIP  
-3️⃣ Donar  
-4️⃣ Web  
-5️⃣ IA 🤖`;
+1️⃣ Información del servidor  
+2️⃣ Comprar VIP / Wcoins  
+3️⃣ Métodos de donación  
+4️⃣ EXP del servidor  
+5️⃣ Reset y puntos  
+6️⃣ Web oficial  
+7️⃣ Contactar ADM  
+
+Escribe el número 👇`;
 }
 
-// ===== BOTONES =====
-async function sendButtons(to) {
-  return axios.post(
-    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to,
-      type: "interactive",
-      interactive: {
-        type: "button",
-        body: { text: "👋 Bienvenido a *MU CORE*\nElige opción:" },
-        action: {
-          buttons: [
-            { type: "reply", reply: { id: "1", title: "Info" } },
-            { type: "reply", reply: { id: "2", title: "VIP" } },
-            { type: "reply", reply: { id: "3", title: "Donar" } },
-            { type: "reply", reply: { id: "5", title: "IA" } }
-          ]
-        }
-      }
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json"
-      }
-    }
-  );
+// ===== RESPUESTAS =====
+function getResponse(msg) {
+  if (msg === "1") {
+    return `📌 *INFORMACIÓN DEL SERVIDOR*
+
+⚔ Tipo: ${DATA.tipo}
+📊 EXP: ${DATA.exp}
+🎁 Drop: ${DATA.drop}
+🔁 Reset: ${DATA.reset}
+🚫 Max Reset: ${DATA.maxreset}
+👥 Cuentas: ${DATA.cuentas}`;
+  }
+
+  if (msg === "2") {
+    return `💎 *COMPRA VIP / WCOINS*
+
+💳 Métodos de pago:
+
+📱 Yape: ${DATA.yape}
+🪙 Binance ID: ${DATA.binance}
+
+📩 Envía:
+- Captura del pago 📸  
+- o TXID  
+
+⚡ Entrega rápida`;
+  }
+
+  if (msg === "3") {
+    return `💰 *DONACIONES*
+
+${DATA.donaciones}`;
+  }
+
+  if (msg === "4") {
+    return `📊 EXP del servidor: ${DATA.exp}`;
+  }
+
+  if (msg === "5") {
+    return `🔁 Reset:
+
+Puntos: ${DATA.reset}
+Máximo: ${DATA.maxreset}`;
+  }
+
+  if (msg === "6") {
+    return `🌐 Web oficial:
+${DATA.web}`;
+  }
+
+  if (msg === "7") {
+    return `📞 Contacto:
+
+Comunícate con el ADM para más información.`;
+  }
+
+  return "Escribe *menu* para ver opciones";
 }
 
 // ===== ENVIAR TEXTO =====
@@ -100,19 +122,41 @@ async function sendMessage(to, body) {
   );
 }
 
-// ===== IA =====
-async function askAI(text) {
-  if (!hasAI) return "🤖 IA no configurada aún.";
-
-  const res = await aiClient.chat.completions.create({
-    model: "gpt-4.1-mini",
-    messages: [
-      { role: "system", content: "Eres soporte del servidor MU CORE. Responde corto y claro." },
-      { role: "user", content: text }
-    ]
-  });
-
-  return res.choices[0].message.content;
+// ===== BOTONES (CON SEGURIDAD) =====
+async function sendButtonsSafe(to) {
+  try {
+    await axios.post(
+      `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to,
+        type: "interactive",
+        interactive: {
+          type: "button",
+          body: {
+            text: "👋 Bienvenido a MU CORE\nSelecciona una opción:"
+          },
+          action: {
+            buttons: [
+              { type: "reply", reply: { id: "1", title: "Info" } },
+              { type: "reply", reply: { id: "2", title: "VIP" } },
+              { type: "reply", reply: { id: "3", title: "Donar" } }
+            ]
+          }
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+  } catch (err) {
+    console.log("⚠ Error botones → envío texto");
+    await sendMessage(to, getMenuText());
+  }
 }
 
 // ===== VERIFY =====
@@ -126,82 +170,62 @@ app.get("/webhook", (req, res) => {
 // ===== WEBHOOK =====
 app.post("/webhook", async (req, res) => {
   try {
-    const msg = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-    if (!msg) return res.sendStatus(200);
+    const message = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    if (!message) return res.sendStatus(200);
 
-    const from = msg.from;
+    const from = message.from;
 
-    // anti spam
+    // ANTI-SPAM
     if (lastMessage[from] && Date.now() - lastMessage[from] < 1500) {
       return res.sendStatus(200);
     }
     lastMessage[from] = Date.now();
 
+    // LEER MENSAJE (TEXTO + IMAGEN)
     const text =
-      msg.text?.body ||
-      msg.interactive?.button_reply?.id ||
+      message.text?.body ||
+      message.image?.caption ||
+      message.interactive?.button_reply?.id ||
       "";
 
-    if (!text) return res.sendStatus(200);
+    const msg = text.toLowerCase();
 
-    console.log("MSG:", from, text);
+    console.log("📩 MSG:", from, msg);
 
-    // crear usuario
-    if (!users[from]) users[from] = { step: "menu" };
+    // ===== DETECTAR COMPROBANTE =====
+    if (
+      message.image ||
+      msg.includes("pago") ||
+      msg.includes("tx") ||
+      msg.includes("comprobante")
+    ) {
+      await sendMessage(
+        from,
+        "📩 Comprobante recibido ✅\n\nUn administrador validará tu pago y te entregará tus Wcoins."
+      );
+      return res.sendStatus(200);
+    }
 
     // ===== MENU =====
-    if (text.toLowerCase().includes("hola") || text === "menu") {
-      users[from].step = "menu";
-      return await sendButtons(from);
+    if (msg.includes("hola") || msg === "menu") {
+      await sendButtonsSafe(from);
+      return res.sendStatus(200);
     }
 
-    // ===== OPCIONES =====
-    switch (text) {
-      case "1":
-        return await sendMessage(from, "📊 Servidor MU CORE x20-5x clásico");
+    // ===== RESPUESTA NORMAL =====
+    const reply = getResponse(msg);
+    await sendMessage(from, reply);
 
-      case "2":
-        users[from].step = "vip";
-        return await sendMessage(
-          from,
-          `💎 VIP: ${DATA.vip}\n\nPaga por Yape:\n📱 ${DATA.yape}\nEnvía comprobante`
-        );
-
-      case "3":
-        return await sendMessage(from, "💰 Yape, Plin, Binance");
-
-      case "4":
-        return await sendMessage(from, `🌐 ${DATA.web}`);
-
-      case "5":
-        users[from].step = "ia";
-        return await sendMessage(from, "🤖 Escribe tu pregunta:");
-    }
-
-    // ===== IA =====
-    if (users[from].step === "ia") {
-      const ai = await askAI(text);
-      return await sendMessage(from, ai);
-    }
-
-    // ===== COMPRA =====
-    if (users[from].step === "vip") {
-      return await sendMessage(
-        from,
-        "📩 Recibido. Un ADM validará tu pago."
-      );
-    }
-
-    return await sendMessage(from, "Escribe *menu*");
-
+    res.sendStatus(200);
   } catch (err) {
-    console.log("ERROR:", err.response?.data || err.message);
+    console.log("❌ ERROR:", err.response?.data || err.message);
     res.sendStatus(200);
   }
 });
 
 // ===== SERVER =====
 const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO++ ACTIVO en " + PORT);
+  console.log("🔥 BOT MU CORE ACTIVO EN " + PORT);
 });
