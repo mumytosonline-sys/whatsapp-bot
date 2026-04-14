@@ -1,8 +1,8 @@
 {
-  "exp": "x500",
-  "vip": "$5",
-  "inicio": "30 de marzo 8:00 PM",
+  "exp": "x20-5x",
+  "drop": "20%",
+  "vip": "$10 (30 días)",
   "tipo": "Slow",
-  "donaciones": "Yape, Plin, PayPal",
-  "cuentas": "2 por IP"
+  "donaciones": "Yape, Plin, PayPal, Binance",
+  "cuentas": "3 por HID"
 }
