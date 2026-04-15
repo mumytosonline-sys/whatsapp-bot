@@ -16,20 +16,31 @@ const pagosPendientes = [];
 
 // ===== DATA COMPLETA =====
 const DATA = {
-  tipo: "Slow (Servidor clásico)",
-  exp: "x20-5x",
+  version: "Season 6 - Hard",
+  exp: "20x - 5x",
+  expvip: "20x",
   drop: "20%",
+  spots: "4-5 mobs por zona",
+  buffers: "Nivel 180",
+  mg: "Nivel 220",
+  dl: "Nivel 250",
+  rf: "Nivel 300",
+  cuentas: "3 cuentas por IP",
+  options: "Máximo 2 options",
+  hp: "150%",
   reset: "300 puntos por reset",
   maxreset: "3 resets máximo",
-  cuentas: "3 cuentas por IP",
+  maxlevel: "400",
   vip: "$10 / 30 días",
   web: "https://mu-core.com/",
   yape: "51927675685",
   binance: "823927645",
-  donaciones: "Yape, Plin, PayPal, Binance"
+  donaciones: "Yape, Plin, PayPal, Binance",
+  discord: "https://discord.com/invite/7N2ssKkdwM",
+  grupo: "https://chat.whatsapp.com/Flqj42gmFieKoGurRxrK7X"
 };
 
-// ===== MENÚ LISTA PRO =====
+// ===== MENÚ PRO =====
 async function sendMenuList(to) {
   await axios.post(
     `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
@@ -40,7 +51,7 @@ async function sendMenuList(to) {
       interactive: {
         type: "list",
         body: {
-          text: "👋 *MU CORE*\nSelecciona una opción:"
+          text: "🔥 *MU CORE*\nSelecciona una opción:"
         },
         action: {
           button: "Ver opciones",
@@ -55,15 +66,22 @@ async function sendMenuList(to) {
             {
               title: "💎 COMPRAS",
               rows: [
-                { id: "vip", title: "Comprar VIP / WCoins" },
+                { id: "vip", title: "Comprar VIP" },
                 { id: "donar", title: "Métodos de pago" }
               ]
             },
             {
-              title: "🌐 EXTRA",
+              title: "🌐 COMUNIDAD",
               rows: [
-                { id: "web", title: "Página web" },
-                { id: "admin", title: "Contactar admin" }
+                { id: "discord", title: "Unirse a Discord" },
+                { id: "grupo", title: "Grupo WhatsApp" }
+              ]
+            },
+            {
+              title: "🚀 EXTRA",
+              rows: [
+                { id: "slots", title: "Ideas de Slots" },
+                { id: "web", title: "Página web" }
               ]
             }
           ]
@@ -82,59 +100,97 @@ async function sendMenuList(to) {
 // ===== RESPUESTAS =====
 async function handleResponse(msg, from) {
   switch (msg) {
-    case "info":
-      return sendText(
-        from,
-        `📌 *INFORMACIÓN COMPLETA*
 
-⚔ Tipo: ${DATA.tipo}
+    case "info":
+      return sendText(from,
+`📌 *INFORMACIÓN GENERAL*
+
+⚔ Versión: ${DATA.version}
 📊 EXP: ${DATA.exp}
+💎 EXP VIP: ${DATA.expvip}
 🎁 Drop: ${DATA.drop}
-👥 Cuentas: ${DATA.cuentas}`
-      );
+
+🗺 Spots: ${DATA.spots}
+🧙 Buffers: ${DATA.buffers}
+
+🧝 Crear MG: ${DATA.mg}
+🐎 Crear DL: ${DATA.dl}
+🥊 Crear RF: ${DATA.rf}
+
+👥 ${DATA.cuentas}
+⚙ Options: ${DATA.options}
+❤️ HP Monstruos: ${DATA.hp}
+
+🔁 Reset: ${DATA.reset}
+🚫 Max Reset: ${DATA.maxreset}
+🏆 Max Level: ${DATA.maxlevel}`);
 
     case "reset":
-      return sendText(
-        from,
-        `🔁 *RESET*
+      return sendText(from,
+`🔁 *RESET*
 
 ${DATA.reset}
-🚫 ${DATA.maxreset}`
-      );
+🚫 ${DATA.maxreset}`);
 
     case "vip":
-      return sendText(
-        from,
-        `💎 *VIP / WCOINS*
+      return sendText(from,
+`💎 *VIP*
 
 💰 Precio: ${DATA.vip}
 
 📱 Yape: ${DATA.yape}
-🪙 Binance ID: ${DATA.binance}
+🪙 Binance: ${DATA.binance}
 
-📸 Envía tu comprobante`
-      );
+📸 Envía comprobante`);
 
     case "donar":
-      return sendText(
-        from,
-        `💰 *DONACIONES*
+      return sendText(from,
+`💰 *DONACIONES*
 
-${DATA.donaciones}`
-      );
+${DATA.donaciones}`);
+
+    case "discord":
+      return sendText(from,
+`💬 *DISCORD*
+
+Únete aquí:
+${DATA.discord}`);
+
+    case "grupo":
+      return sendText(from,
+`👥 *GRUPO WHATSAPP*
+
+Únete aquí:
+${DATA.grupo}`);
 
     case "web":
-      return sendText(from, `🌐 ${DATA.web}`);
+      return sendText(from,
+`🌐 ${DATA.web}`);
 
-    case "admin":
-      return sendText(from, `📞 Admin: ${ADMIN_NUMBER}`);
+    case "slots":
+      return sendText(from,
+`🎰 *IDEAS PARA SLOTS*
+
+✔ VIP limitado
+✔ Eventos exclusivos
+✔ Drop VIP
+✔ Reset rápido VIP
+✔ Ranking con premios
+
+💡 Esto hace crecer el servidor`);
+
+    case "menu":
+      return sendMenuList(from);
 
     default:
-      return sendText(from, "Escribe *menu*");
+      return sendText(from,
+`❌ Opción no válida
+
+Escribe *menu*`);
   }
 }
 
-// ===== ENVIAR TEXTO =====
+// ===== ENVIAR =====
 async function sendText(to, body) {
   await axios.post(
     `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
@@ -170,7 +226,6 @@ app.post("/webhook", async (req, res) => {
 
     const from = message.from;
 
-    // ANTI-SPAM
     if (lastMessage[from] && Date.now() - lastMessage[from] < 1500) {
       return res.sendStatus(200);
     }
@@ -189,13 +244,11 @@ app.post("/webhook", async (req, res) => {
 
     console.log("📩", from, msg);
 
-    // ===== MENU =====
     if (msg.includes("hola") || msg === "menu") {
       await sendMenuList(from);
       return res.sendStatus(200);
     }
 
-    // ===== PAGOS =====
     if (message.type === "image" || msg.includes("pago")) {
       pagosPendientes.push({ from });
 
@@ -208,7 +261,6 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // ===== RESPUESTAS =====
     await handleResponse(msg, from);
 
     res.sendStatus(200);
@@ -222,5 +274,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO COMPLETO ACTIVO EN " + PORT);
+  console.log("🔥 BOT PRO FULL ACTIVO EN " + PORT);
 });
