@@ -18,14 +18,14 @@ const pagosPendientes = [];
 const DATA = {
   version: "Season 6 - Hard",
   exp: "20x - 5x",
-  expvip: "20x",
+  Type: "GMO",
   drop: "20%",
   spots: "4-5 mobs por zona",
   buffers: "Nivel 180",
   mg: "Nivel 220",
   dl: "Nivel 250",
   rf: "Nivel 300",
-  cuentas: "3 cuentas por IP",
+  cuentas: "3 cuentas por HID",
   options: "Máximo 2 options",
   hp: "150%",
   reset: "300 puntos por reset",
@@ -164,7 +164,7 @@ async function handleResponse(msg, from) {
 ✔ Mayor experiencia
 ✔ Mejor drop
 ✔ Beneficios exclusivos
-✔ Eventos especiales
+✔ Rate mejorado
 
 💰 Precio: ${DATA.vip}
 
