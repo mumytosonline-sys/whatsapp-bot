@@ -14,6 +14,11 @@ const ADMIN_NUMBER = "51927675685";
 const lastMessage = {};
 const pagosPendientes = [];
 
+// ===== DELAY (FIX IMPORTANTE) =====
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // ===== DATA =====
 const DATA = {
   version: "Season 6 - Hard",
@@ -120,7 +125,7 @@ async function sendMenuList(to) {
             {
               title: "🚀 EXTRA",
               rows: [
-                { id: "slots", title: "Informacion Extra" },
+                { id: "slots", title: "Ideas de Slots" },
                 { id: "web", title: "Página web" }
               ]
             }
@@ -145,9 +150,11 @@ async function handleResponse(msg, from) {
     case "info":
 
       await sendImage(from,
-        "https://i.imgur.com/3ZQ3Z9K.jpg",
+        "https://picsum.photos/500",
         "🔥 MU CORE - Información"
       );
+
+      await delay(800);
 
       return sendText(from,
 `╔═══ 🎮 *MU CORE* 🎮 ═══╗
@@ -185,16 +192,18 @@ ${DATA.reset}
     case "vip":
 
       await sendImage(from,
-        "https://i.imgur.com/7b1KQkF.png",
+        "https://picsum.photos/500",
         "💎 VIP MU CORE"
       );
+
+      await delay(800);
 
       return sendText(from,
 `💎 *VIP PREMIUM*
 
 ✔ Mejor EXP
 ✔ Mejor Drop
-✔ Rate +10%
+✔ Eventos exclusivos
 
 💰 Precio: ${DATA.vip}
 
@@ -235,10 +244,10 @@ ${DATA.grupo}`);
 `🎰 *IDEAS PARA CRECER*
 
 ✔ VIP limitado
-✔ Eventos Diarios
+✔ Eventos con premios
 ✔ Ranking competitivo
-✔ Drop HARD
-✔ Off helper 08 Hrs`);
+✔ Drop Hard
+✔ Offheloer 08 Hrs`);
 
     case "menu":
       return sendMenuList(from);
@@ -317,5 +326,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO CON IMÁGENES ACTIVO EN " + PORT);
+  console.log("🔥 BOT PRO ESTABLE ACTIVO EN " + PORT);
 });
