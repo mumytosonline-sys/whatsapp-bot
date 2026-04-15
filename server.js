@@ -13,12 +13,13 @@ const ADMIN_NUMBER = "51927675685";
 
 const lastMessage = {};
 const pagosPendientes = [];
+const userState = {};
 
 // ===== DATA =====
 const DATA = {
   version: "Season 6 - Hard",
   exp: "20x - 5x",
-  type: "GMO", // 🔥 cambiado correctamente
+  type: "GMO",
   drop: "20%",
   spots: "4-5 mobs por zona",
   buffers: "Nivel 180",
@@ -69,7 +70,15 @@ async function sendMenuList(to) {
       interactive: {
         type: "list",
         body: {
-          text: "🔥 *MU CORE HARD*\nSelecciona una opción:"
+          text: `🔥 *MU CORE HARD S6* 🔥
+
+Bienvenido aventurero ⚔
+
+📌 Servidor PvP Hardcore
+💎 Sin Pay2Win
+🎁 Eventos diarios
+
+Selecciona una opción:`
         },
         action: {
           button: "Ver opciones",
@@ -145,7 +154,7 @@ async function handleResponse(msg, from) {
 🏆 Level máximo: ${DATA.maxlevel}
 
 🌐 Web oficial:
-👉 https://mu-core.com/
+👉 ${DATA.web}
 `);
 
     case "reset":
@@ -161,14 +170,15 @@ async function handleResponse(msg, from) {
       return sendText(from,
 `💎 *VIP PREMIUM MU CORE*
 
-✔ Mayor experiencia
-✔ Mejor drop
-✔ Beneficios exclusivos
-✔ Rate mejorado
+🚀 *VENTAJAS VIP*
+🔥 EXP aumentada
+🔥 Drop mejorado
+🔥 Rate Mejorad
+🔥 offattack Recolecta
 
 💰 Precio: ${DATA.vip}
 
-📲 Pago:
+📲 Pagos:
 👉 Yape: ${DATA.yape}
 👉 Binance: ${DATA.binance}
 
@@ -201,7 +211,7 @@ async function handleResponse(msg, from) {
 `🌐 *PÁGINA OFICIAL*
 
 Regístrate y juega:
-👉 https://mu-core.com/
+👉 ${DATA.web}
 
 🔥 Servidor activo
 🎁 Eventos diarios
@@ -222,7 +232,7 @@ Regístrate y juega:
 
     default:
       return sendText(from,
-`❌ Opción no válida
+`❌ No entendí esa opción 😅
 
 👉 Escribe *menu* para ver opciones`);
   }
@@ -245,6 +255,7 @@ app.post("/webhook", async (req, res) => {
     if (!message) return res.sendStatus(200);
 
     const from = message.from;
+    userState[from] = userState[from] || {};
 
     if (lastMessage[from] && Date.now() - lastMessage[from] < 1500) {
       return res.sendStatus(200);
@@ -264,15 +275,23 @@ app.post("/webhook", async (req, res) => {
 
     console.log("📩", from, msg);
 
-    if (msg.includes("hola") || msg === "menu") {
+    // AUTO MENU
+    if (!msg || msg.includes("hola") || msg === "menu") {
       await sendMenuList(from);
       return res.sendStatus(200);
     }
 
+    // DETECTAR PAGOS
     if (message.type === "image" || (msg && msg.includes("pago"))) {
       pagosPendientes.push({ from });
 
-      await sendText(from, "✅ Pago recibido, validando...");
+      await sendText(from,
+`💰 Pago recibido correctamente ✅
+
+⏳ Estamos validando tu compra...
+
+📩 Te avisaremos en breve`);
+
       await sendText(
         ADMIN_NUMBER,
         `💰 NUEVO PAGO\n📱 ${from}`
@@ -284,6 +303,7 @@ app.post("/webhook", async (req, res) => {
     await handleResponse(msg, from);
 
     res.sendStatus(200);
+
   } catch (err) {
     console.log("❌ ERROR:", err.response?.data || err.message);
     res.sendStatus(200);
@@ -294,5 +314,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT MU CORE ESTABLE ACTIVO EN " + PORT);
+  console.log("🔥 BOT MU CORE PRO ACTIVO EN " + PORT);
 });
