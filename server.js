@@ -18,7 +18,7 @@ const pagosPendientes = [];
 const DATA = {
   version: "Season 6 - Hard",
   exp: "20x - 5x",
-  expvip: "20x",
+  expvip: "+5%",
   drop: "20%",
   spots: "4-5 mobs por zona",
   buffers: "Nivel 180",
@@ -277,5 +277,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO LIMPIO Y ESTABLE EN " + PORT);
+  console.log("🔥 BOT 100% LIMPIO Y ESTABLE EN " + PORT);
 });
