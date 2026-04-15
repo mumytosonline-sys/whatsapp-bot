@@ -18,7 +18,7 @@ const pagosPendientes = [];
 const DATA = {
   version: "Season 6 - Hard",
   exp: "20x - 5x",
-  Type: "GMO",
+  type: "GMO", // 🔥 cambiado correctamente
   drop: "20%",
   spots: "4-5 mobs por zona",
   buffers: "Nivel 180",
@@ -125,8 +125,8 @@ async function handleResponse(msg, from) {
 `🔥 *MU CORE HARD - INFORMACIÓN*
 
 ⚔ Versión: ${DATA.version}
+🧬 Tipo: ${DATA.type}
 📊 Experiencia: ${DATA.exp}
-💎 Exp VIP: ${DATA.expvip}
 🎁 Drop: ${DATA.drop}
 
 🗺 Spots: ${DATA.spots}
@@ -294,5 +294,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO MU CORE ACTIVO EN " + PORT);
+  console.log("🔥 BOT MU CORE ESTABLE ACTIVO EN " + PORT);
 });
