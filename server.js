@@ -14,11 +14,19 @@ const ADMIN_NUMBER = "51927675685";
 const lastMessage = {};
 const pagosPendientes = [];
 
-// ===== DATA =====
+// ===== DATA COMPLETA =====
 const DATA = {
+  tipo: "Slow (Servidor clásico)",
+  exp: "x20-5x",
+  drop: "20%",
+  reset: "300 puntos por reset",
+  maxreset: "3 resets máximo",
+  cuentas: "3 cuentas por IP",
+  vip: "$10 / 30 días",
   web: "https://mu-core.com/",
   yape: "51927675685",
-  binance: "823927645"
+  binance: "823927645",
+  donaciones: "Yape, Plin, PayPal, Binance"
 };
 
 // ===== MENÚ LISTA PRO =====
@@ -32,7 +40,7 @@ async function sendMenuList(to) {
       interactive: {
         type: "list",
         body: {
-          text: "👋 Bienvenido a *MU CORE*\nSelecciona una opción:"
+          text: "👋 *MU CORE*\nSelecciona una opción:"
         },
         action: {
           button: "Ver opciones",
@@ -40,20 +48,21 @@ async function sendMenuList(to) {
             {
               title: "📌 SERVIDOR",
               rows: [
-                { id: "info", title: "Información" },
-                { id: "web", title: "Página web" }
+                { id: "info", title: "Información completa" },
+                { id: "reset", title: "Reset y puntos" }
               ]
             },
             {
               title: "💎 COMPRAS",
               rows: [
-                { id: "vip", title: "Comprar VIP" },
+                { id: "vip", title: "Comprar VIP / WCoins" },
                 { id: "donar", title: "Métodos de pago" }
               ]
             },
             {
-              title: "🛠 SOPORTE",
+              title: "🌐 EXTRA",
               rows: [
+                { id: "web", title: "Página web" },
                 { id: "admin", title: "Contactar admin" }
               ]
             }
@@ -70,26 +79,38 @@ async function sendMenuList(to) {
   );
 }
 
-// ===== RESPUESTAS PRO =====
+// ===== RESPUESTAS =====
 async function handleResponse(msg, from) {
   switch (msg) {
     case "info":
-      return sendText(from, `📊 *INFO DEL SERVER*
+      return sendText(
+        from,
+        `📌 *INFORMACIÓN COMPLETA*
 
-⚔ Tipo: Slow
-📊 EXP: x20-5x
-🎁 Drop: 20%`);
+⚔ Tipo: ${DATA.tipo}
+📊 EXP: ${DATA.exp}
+🎁 Drop: ${DATA.drop}
+👥 Cuentas: ${DATA.cuentas}`
+      );
 
-    case "web":
-      return sendText(from, `🌐 ${DATA.web}`);
+    case "reset":
+      return sendText(
+        from,
+        `🔁 *RESET*
+
+${DATA.reset}
+🚫 ${DATA.maxreset}`
+      );
 
     case "vip":
       return sendText(
         from,
-        `💎 *COMPRA VIP*
+        `💎 *VIP / WCOINS*
+
+💰 Precio: ${DATA.vip}
 
 📱 Yape: ${DATA.yape}
-🪙 Binance: ${DATA.binance}
+🪙 Binance ID: ${DATA.binance}
 
 📸 Envía tu comprobante`
       );
@@ -97,12 +118,13 @@ async function handleResponse(msg, from) {
     case "donar":
       return sendText(
         from,
-        `💰 Métodos disponibles:
+        `💰 *DONACIONES*
 
-✔ Yape  
-✔ Binance  
-✔ PayPal`
+${DATA.donaciones}`
       );
+
+    case "web":
+      return sendText(from, `🌐 ${DATA.web}`);
 
     case "admin":
       return sendText(from, `📞 Admin: ${ADMIN_NUMBER}`);
@@ -200,5 +222,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO ACTIVO EN " + PORT);
+  console.log("🔥 BOT PRO COMPLETO ACTIVO EN " + PORT);
 });
