@@ -18,7 +18,7 @@ const pagosPendientes = [];
 const DATA = {
   version: "Season 6 - Hard",
   exp: "20x - 5x",
-  expvip: "+5%",
+  expvip: "20x",
   drop: "20%",
   spots: "4-5 mobs por zona",
   buffers: "Nivel 180",
@@ -69,7 +69,7 @@ async function sendMenuList(to) {
       interactive: {
         type: "list",
         body: {
-          text: "🔥 *MU CORE*\nSelecciona una opción:"
+          text: "🔥 *MU CORE HARD*\nSelecciona una opción:"
         },
         action: {
           button: "Ver opciones",
@@ -92,14 +92,14 @@ async function sendMenuList(to) {
               title: "🌐 COMUNIDAD",
               rows: [
                 { id: "discord", title: "Unirse a Discord" },
-                { id: "grupo", title: "Grupo WhatsApp" }
+                { id: "grupo", title: "Grupo WhatsApp" },
+                { id: "web", title: "Página web oficial" }
               ]
             },
             {
               title: "🚀 EXTRA",
               rows: [
-                { id: "slots", title: "Ideas de Slots" },
-                { id: "web", title: "Página web" }
+                { id: "slots", title: "Ideas del servidor" }
               ]
             }
           ]
@@ -122,11 +122,11 @@ async function handleResponse(msg, from) {
 
     case "info":
       return sendText(from,
-`╔═══ 🎮 *MU CORE* 🎮 ═══╗
+`🔥 *MU CORE HARD - INFORMACIÓN*
 
 ⚔ Versión: ${DATA.version}
-📊 EXP: ${DATA.exp}
-💎 EXP VIP: ${DATA.expvip}
+📊 Experiencia: ${DATA.exp}
+💎 Exp VIP: ${DATA.expvip}
 🎁 Drop: ${DATA.drop}
 
 🗺 Spots: ${DATA.spots}
@@ -138,67 +138,84 @@ async function handleResponse(msg, from) {
 
 👥 ${DATA.cuentas}
 ⚙ ${DATA.options}
-❤️ HP: ${DATA.hp}
+❤️ HP Monstruos: ${DATA.hp}
 
 🔁 ${DATA.reset}
 🚫 ${DATA.maxreset}
-🏆 Level: ${DATA.maxlevel}
+🏆 Level máximo: ${DATA.maxlevel}
 
-╚═══════════════════╝`);
+🌐 Web oficial:
+👉 https://mu-core.com/
+`);
 
     case "reset":
       return sendText(from,
-`🔁 *RESET*
+`🔁 *SISTEMA DE RESET*
 
-${DATA.reset}
-🚫 ${DATA.maxreset}`);
+✔ ${DATA.reset}
+✔ ${DATA.maxreset}
+
+💡 Mientras más resets, más poder`);
 
     case "vip":
       return sendText(from,
-`💎 *VIP PREMIUM*
+`💎 *VIP PREMIUM MU CORE*
 
-✔ Mejor EXP
-✔ Mejor Drop
-✔ Eventos exclusivos
+✔ Mayor experiencia
+✔ Mejor drop
+✔ Beneficios exclusivos
+✔ Eventos especiales
 
 💰 Precio: ${DATA.vip}
 
-📱 Yape: ${DATA.yape}
-🪙 Binance: ${DATA.binance}
+📲 Pago:
+👉 Yape: ${DATA.yape}
+👉 Binance: ${DATA.binance}
 
-📸 Envía comprobante`);
+📸 Envía tu comprobante aquí`);
 
     case "donar":
       return sendText(from,
-`💰 *DONACIONES*
+`💰 *MÉTODOS DE DONACIÓN*
 
-${DATA.donaciones}`);
+✔ ${DATA.donaciones}
+
+🙏 Gracias por apoyar el servidor`);
 
     case "discord":
       return sendText(from,
-`💬 *DISCORD*
+`💬 *DISCORD OFICIAL*
 
-${DATA.discord}`);
+Únete aquí:
+👉 ${DATA.discord}`);
 
     case "grupo":
       return sendText(from,
 `👥 *GRUPO WHATSAPP*
 
-${DATA.grupo}`);
+Únete aquí:
+👉 ${DATA.grupo}`);
 
     case "web":
       return sendText(from,
-`🌐 ${DATA.web}`);
+`🌐 *PÁGINA OFICIAL*
+
+Regístrate y juega:
+👉 https://mu-core.com/
+
+🔥 Servidor activo
+🎁 Eventos diarios
+💎 VIP disponible`);
 
     case "slots":
       return sendText(from,
-`🎰 *IDEAS PARA CRECER*
+`🎰 *IDEAS DEL SERVIDOR*
 
-✔ VIP limitado
-✔ Eventos con premios
-✔ Ranking competitivo
-✔ Drop Hard
-✔ Offhelper 8 horas`);
+✔ Eventos automáticos
+✔ Rankings competitivos
+✔ Sistema VIP balanceado
+✔ Drop ajustado
+✔ Juego activo 24/7`);
 
     case "menu":
       return sendMenuList(from);
@@ -207,7 +224,7 @@ ${DATA.grupo}`);
       return sendText(from,
 `❌ Opción no válida
 
-Escribe *menu*`);
+👉 Escribe *menu* para ver opciones`);
   }
 }
 
@@ -258,7 +275,7 @@ app.post("/webhook", async (req, res) => {
       await sendText(from, "✅ Pago recibido, validando...");
       await sendText(
         ADMIN_NUMBER,
-        `💰 NUEVO PAGO\n\n📱 ${from}`
+        `💰 NUEVO PAGO\n📱 ${from}`
       );
 
       return res.sendStatus(200);
@@ -277,5 +294,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT 100% LIMPIO Y ESTABLE EN " + PORT);
+  console.log("🔥 BOT PRO MU CORE ACTIVO EN " + PORT);
 });
