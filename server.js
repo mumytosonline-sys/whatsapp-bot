@@ -25,7 +25,7 @@ const DATA = {
   mg: "Nivel 220",
   dl: "Nivel 250",
   rf: "Nivel 300",
-  cuentas: "3 cuentas por IP",
+  cuentas: "3 cuentas por HID",
   options: "Máximo 2 options",
   hp: "150%",
   reset: "300 puntos por reset",
@@ -120,7 +120,7 @@ async function sendMenuList(to) {
             {
               title: "🚀 EXTRA",
               rows: [
-                { id: "slots", title: "Ideas de Slots" },
+                { id: "slots", title: "Informacion Extra" },
                 { id: "web", title: "Página web" }
               ]
             }
@@ -194,7 +194,7 @@ ${DATA.reset}
 
 ✔ Mejor EXP
 ✔ Mejor Drop
-✔ Eventos exclusivos
+✔ Rate +10%
 
 💰 Precio: ${DATA.vip}
 
@@ -235,10 +235,10 @@ ${DATA.grupo}`);
 `🎰 *IDEAS PARA CRECER*
 
 ✔ VIP limitado
-✔ Eventos con premios
+✔ Eventos Diarios
 ✔ Ranking competitivo
-✔ Drop VIP
-✔ Reset rápido VIP`);
+✔ Drop HARD
+✔ Off helper 08 Hrs`);
 
     case "menu":
       return sendMenuList(from);
