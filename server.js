@@ -14,11 +14,6 @@ const ADMIN_NUMBER = "51927675685";
 const lastMessage = {};
 const pagosPendientes = [];
 
-// ===== DELAY (FIX IMPORTANTE) =====
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 // ===== DATA =====
 const DATA = {
   version: "Season 6 - Hard",
@@ -30,7 +25,7 @@ const DATA = {
   mg: "Nivel 220",
   dl: "Nivel 250",
   rf: "Nivel 300",
-  cuentas: "3 cuentas por HID",
+  cuentas: "3 cuentas por IP",
   options: "Máximo 2 options",
   hp: "150%",
   reset: "300 puntos por reset",
@@ -53,28 +48,6 @@ async function sendText(to, body) {
       messaging_product: "whatsapp",
       to,
       text: { body }
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json"
-      }
-    }
-  );
-}
-
-// ===== ENVIAR IMAGEN =====
-async function sendImage(to, imageUrl, caption = "") {
-  await axios.post(
-    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to,
-      type: "image",
-      image: {
-        link: imageUrl,
-        caption
-      }
     },
     {
       headers: {
@@ -148,14 +121,6 @@ async function handleResponse(msg, from) {
   switch (msg) {
 
     case "info":
-
-      await sendImage(from,
-        "https://picsum.photos/500",
-        "🔥 MU CORE - Información"
-      );
-
-      await delay(800);
-
       return sendText(from,
 `╔═══ 🎮 *MU CORE* 🎮 ═══╗
 
@@ -182,7 +147,6 @@ async function handleResponse(msg, from) {
 ╚═══════════════════╝`);
 
     case "reset":
-
       return sendText(from,
 `🔁 *RESET*
 
@@ -190,14 +154,6 @@ ${DATA.reset}
 🚫 ${DATA.maxreset}`);
 
     case "vip":
-
-      await sendImage(from,
-        "https://picsum.photos/500",
-        "💎 VIP MU CORE"
-      );
-
-      await delay(800);
-
       return sendText(from,
 `💎 *VIP PREMIUM*
 
@@ -213,33 +169,28 @@ ${DATA.reset}
 📸 Envía comprobante`);
 
     case "donar":
-
       return sendText(from,
 `💰 *DONACIONES*
 
 ${DATA.donaciones}`);
 
     case "discord":
-
       return sendText(from,
 `💬 *DISCORD*
 
 ${DATA.discord}`);
 
     case "grupo":
-
       return sendText(from,
 `👥 *GRUPO WHATSAPP*
 
 ${DATA.grupo}`);
 
     case "web":
-
       return sendText(from,
 `🌐 ${DATA.web}`);
 
     case "slots":
-
       return sendText(from,
 `🎰 *IDEAS PARA CRECER*
 
@@ -247,7 +198,7 @@ ${DATA.grupo}`);
 ✔ Eventos con premios
 ✔ Ranking competitivo
 ✔ Drop Hard
-✔ Offheloer 08 Hrs`);
+✔ Offhelper 8 horas`);
 
     case "menu":
       return sendMenuList(from);
@@ -301,7 +252,7 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    if (message.type === "image" || msg.includes("pago")) {
+    if (message.type === "image" || (msg && msg.includes("pago"))) {
       pagosPendientes.push({ from });
 
       await sendText(from, "✅ Pago recibido, validando...");
@@ -326,5 +277,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO ESTABLE ACTIVO EN " + PORT);
+  console.log("🔥 BOT PRO LIMPIO Y ESTABLE EN " + PORT);
 });
