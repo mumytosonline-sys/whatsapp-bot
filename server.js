@@ -14,7 +14,7 @@ const ADMIN_NUMBER = "51927675685";
 const lastMessage = {};
 const pagosPendientes = [];
 
-// ===== DATA COMPLETA =====
+// ===== DATA =====
 const DATA = {
   version: "Season 6 - Hard",
   exp: "20x - 5x",
@@ -40,7 +40,47 @@ const DATA = {
   grupo: "https://chat.whatsapp.com/Flqj42gmFieKoGurRxrK7X"
 };
 
-// ===== MENÚ PRO =====
+// ===== ENVIAR TEXTO =====
+async function sendText(to, body) {
+  await axios.post(
+    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to,
+      text: { body }
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+}
+
+// ===== ENVIAR IMAGEN =====
+async function sendImage(to, imageUrl, caption = "") {
+  await axios.post(
+    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to,
+      type: "image",
+      image: {
+        link: imageUrl,
+        caption
+      }
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+}
+
+// ===== MENÚ =====
 async function sendMenuList(to) {
   await axios.post(
     `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
@@ -99,11 +139,18 @@ async function sendMenuList(to) {
 
 // ===== RESPUESTAS =====
 async function handleResponse(msg, from) {
+
   switch (msg) {
 
     case "info":
+
+      await sendImage(from,
+        "https://i.imgur.com/3ZQ3Z9K.jpg",
+        "🔥 MU CORE - Información"
+      );
+
       return sendText(from,
-`📌 *INFORMACIÓN GENERAL*
+`╔═══ 🎮 *MU CORE* 🎮 ═══╗
 
 ⚔ Versión: ${DATA.version}
 📊 EXP: ${DATA.exp}
@@ -113,19 +160,22 @@ async function handleResponse(msg, from) {
 🗺 Spots: ${DATA.spots}
 🧙 Buffers: ${DATA.buffers}
 
-🧝 Crear MG: ${DATA.mg}
-🐎 Crear DL: ${DATA.dl}
-🥊 Crear RF: ${DATA.rf}
+🧝 MG: ${DATA.mg}
+🐎 DL: ${DATA.dl}
+🥊 RF: ${DATA.rf}
 
 👥 ${DATA.cuentas}
-⚙ Options: ${DATA.options}
-❤️ HP Monstruos: ${DATA.hp}
+⚙ ${DATA.options}
+❤️ HP: ${DATA.hp}
 
-🔁 Reset: ${DATA.reset}
-🚫 Max Reset: ${DATA.maxreset}
-🏆 Max Level: ${DATA.maxlevel}`);
+🔁 ${DATA.reset}
+🚫 ${DATA.maxreset}
+🏆 Level: ${DATA.maxlevel}
+
+╚═══════════════════╝`);
 
     case "reset":
+
       return sendText(from,
 `🔁 *RESET*
 
@@ -133,8 +183,18 @@ ${DATA.reset}
 🚫 ${DATA.maxreset}`);
 
     case "vip":
+
+      await sendImage(from,
+        "https://i.imgur.com/7b1KQkF.png",
+        "💎 VIP MU CORE"
+      );
+
       return sendText(from,
-`💎 *VIP*
+`💎 *VIP PREMIUM*
+
+✔ Mejor EXP
+✔ Mejor Drop
+✔ Eventos exclusivos
 
 💰 Precio: ${DATA.vip}
 
@@ -144,40 +204,41 @@ ${DATA.reset}
 📸 Envía comprobante`);
 
     case "donar":
+
       return sendText(from,
 `💰 *DONACIONES*
 
 ${DATA.donaciones}`);
 
     case "discord":
+
       return sendText(from,
 `💬 *DISCORD*
 
-Únete aquí:
 ${DATA.discord}`);
 
     case "grupo":
+
       return sendText(from,
 `👥 *GRUPO WHATSAPP*
 
-Únete aquí:
 ${DATA.grupo}`);
 
     case "web":
+
       return sendText(from,
 `🌐 ${DATA.web}`);
 
     case "slots":
+
       return sendText(from,
-`🎰 *IDEAS PARA SLOTS*
+`🎰 *IDEAS PARA CRECER*
 
 ✔ VIP limitado
-✔ Eventos exclusivos
+✔ Eventos con premios
+✔ Ranking competitivo
 ✔ Drop VIP
-✔ Reset rápido VIP
-✔ Ranking con premios
-
-💡 Esto hace crecer el servidor`);
+✔ Reset rápido VIP`);
 
     case "menu":
       return sendMenuList(from);
@@ -188,24 +249,6 @@ ${DATA.grupo}`);
 
 Escribe *menu*`);
   }
-}
-
-// ===== ENVIAR =====
-async function sendText(to, body) {
-  await axios.post(
-    `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to,
-      text: { body }
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json"
-      }
-    }
-  );
 }
 
 // ===== VERIFY =====
@@ -274,5 +317,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🔥 BOT PRO FULL ACTIVO EN " + PORT);
+  console.log("🔥 BOT PRO CON IMÁGENES ACTIVO EN " + PORT);
 });
