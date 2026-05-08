@@ -37,7 +37,7 @@ const DATA = {
   yape: "51927675685",
   binance: "823927645",
   donaciones: "Yape, Plin, PayPal, Binance",
-  discord: "https://discord.com/invite/7N2ssKkdwM",
+  discord: "https://discord.com/invite/saVJs2X9AG",
   grupo: "https://chat.whatsapp.com/Flqj42gmFieKoGurRxrK7X"
 };
 
